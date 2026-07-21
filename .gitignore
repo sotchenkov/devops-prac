@@ -5,6 +5,9 @@ logs
 
 .env
 
+# Local learning instructions for Codex
+/AGENTS.md
+
 # General
 .DS_Store
 __MACOSX/
