@@ -1,7 +1,5 @@
 # Lima
 
-Группы вм для,например, работы с ansible
-
 ## Установка
 ```sh
 brew install lima
@@ -15,4 +13,9 @@ make homelab-up
 ## Остановка
 ```sh
 make homelab-down
+```
+
+## Очистка
+```sh
+make homelab-clear
 ```
