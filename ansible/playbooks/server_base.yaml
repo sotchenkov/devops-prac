@@ -1,0 +1,23 @@
+- name: base server setup
+  hosts: homelab
+  remote_user: ansible
+  gather_facts: false
+  tasks:
+   - name: configure sshd
+     become: true
+     ansible.builtin.copy:
+       src: files/ssh/sshd_config
+       dest: /etc/ssh/sshd_config
+       owner: root
+       group: root
+       mode: '0644'
+       validate: '/usr/sbin/sshd -t -f %s'
+     notify:
+       - reload ssh
+
+  handlers:
+  - name: reload ssh
+    become: true
+    ansible.builtin.service:
+      name: ssh
+      state: reloaded

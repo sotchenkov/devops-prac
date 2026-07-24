@@ -1,10 +1,10 @@
-- name: Add Ansible user and give him ssh key
+- name: add ansible user, give him ssh key and disable sudo password requirement
   hosts: homelab
   remote_user: "{{ bootstrap_user }}"
   gather_facts: false
   become: true
   tasks:
-   - name: Create Ansible user
+   - name: create ansible user
      ansible.builtin.user:
        name: ansible
        append: true
@@ -12,12 +12,12 @@
        create_home: yes
        shell: /bin/bash
        password: '!'
-   - name: Add SSH key for Ansible user
+   - name: add ssh key for ansible user
      ansible.posix.authorized_key:
        user: ansible
        state: present
        key: "{{ lookup('file', lima_ssh_pubkey_path) }}"
-   - name: Disable password requirement for Ansible user
+   - name: disable sudo password requirement for ansible user
      ansible.builtin.lineinfile:
       path: /etc/sudoers.d/ansible
       create: true
