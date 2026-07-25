@@ -3,31 +3,64 @@
   remote_user: ansible
   gather_facts: false
   tasks:
-   - name: configure sshd
-     become: true
-     ansible.builtin.copy:
-       src: files/ssh/sshd_config
-       dest: /etc/ssh/sshd_config
-       owner: root
-       group: root
-       mode: '0644'
-       validate: '/usr/sbin/sshd -t -f %s'
-     notify:
-       - reload ssh
-   - name: install packages
-     become: true
-     ansible.builtin.apt:
-       update_cache: true
-       cache_valid_time: 3600
-       pkg:
-        - ca-certificates
-        - curl
-        - jq
-        - unzip
+    - name: configuring sshd
+      become: true
+      ansible.builtin.copy:
+        src: files/ssh/sshd_config
+        dest: /etc/ssh/sshd_config
+        owner: root
+        group: root
+        mode: '0644'
+        validate: '/usr/sbin/sshd -t -f %s'
+      notify:
+        - reload ssh
+    - name: installing packages
+      become: true
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+        pkg:
+          - ca-certificates
+          - curl
+          - jq
+          - unzip
+          - chrony
+          - ufw
+    - name: set timezone to utc
+      become: true
+      community.general.timezone:
+        name: Etc/UTC
+    - name: set chrony service active and enabled
+      become: true
+      ansible.builtin.systemd_service:
+        name: chrony.service
+        state: started
+        enabled: true
+    - name: allow ssh on ufw
+      become: true
+      community.general.ufw:
+        rule: allow
+        name: OpenSSH
+    - name: allow outgoing and deny incoming traffic on ufw as default
+      become: true
+      community.general.ufw:
+        default: "{{ item.policy }}"
+        direction: "{{ item.direction }}"
+      loop:
+        - { policy: 'deny', direction: 'incoming' }
+        - { policy: 'allow', direction: 'outgoing' }
+    - name: allow ufw logging
+      become: true
+      community.general.ufw:
+        logging: on
+    - name: enable ufw
+      become: true
+      community.general.ufw:
+        state: enabled
 
   handlers:
-  - name: reload ssh
-    become: true
-    ansible.builtin.service:
-      name: ssh
-      state: reloaded
+    - name: reload ssh
+      become: true
+      ansible.builtin.service:
+        name: ssh
+        state: reloaded
