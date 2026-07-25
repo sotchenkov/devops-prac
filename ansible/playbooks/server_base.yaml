@@ -14,6 +14,16 @@
        validate: '/usr/sbin/sshd -t -f %s'
      notify:
        - reload ssh
+   - name: install packages
+     become: true
+     ansible.builtin.apt:
+       update_cache: true
+       cache_valid_time: 3600
+       pkg:
+        - ca-certificates
+        - curl
+        - jq
+        - unzip
 
   handlers:
   - name: reload ssh
