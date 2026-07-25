@@ -2,9 +2,9 @@
   hosts: homelab
   remote_user: ansible
   gather_facts: false
+  become: true
   tasks:
     - name: configuring sshd
-      become: true
       ansible.builtin.copy:
         src: files/ssh/sshd_config
         dest: /etc/ssh/sshd_config
@@ -14,8 +14,8 @@
         validate: '/usr/sbin/sshd -t -f %s'
       notify:
         - reload ssh
+
     - name: installing packages
-      become: true
       ansible.builtin.apt:
         update_cache: true
         cache_valid_time: 3600
@@ -26,41 +26,104 @@
           - unzip
           - chrony
           - ufw
+          - nginx-full
+
     - name: set timezone to utc
-      become: true
       community.general.timezone:
         name: Etc/UTC
+
     - name: set chrony service active and enabled
-      become: true
       ansible.builtin.systemd_service:
         name: chrony.service
         state: started
         enabled: true
+
     - name: allow ssh on ufw
-      become: true
       community.general.ufw:
         rule: allow
         name: OpenSSH
+
     - name: allow outgoing and deny incoming traffic on ufw as default
-      become: true
       community.general.ufw:
         default: "{{ item.policy }}"
         direction: "{{ item.direction }}"
       loop:
         - { policy: 'deny', direction: 'incoming' }
         - { policy: 'allow', direction: 'outgoing' }
+
     - name: allow ufw logging
-      become: true
       community.general.ufw:
         logging: on
+
     - name: enable ufw
-      become: true
       community.general.ufw:
         state: enabled
 
+    - name: start and enable nginx service
+      ansible.builtin.systemd_service:
+        name: nginx
+        state: started
+        enabled: true
+
+    - name: disable default nginx website
+      ansible.builtin.file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+      notify: reload nginx
+
+    - name: create site directory
+      ansible.builtin.file:
+        path: /var/www/example
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: add static site file
+      ansible.builtin.copy:
+        src: files/nginx/index.html
+        dest: /var/www/example/index.html
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: add new nginx server configuration from template
+      ansible.builtin.template:
+        src: templates/nginx/server_base.conf.j2
+        dest: /etc/nginx/sites-available/server_base.conf
+        owner: root
+        group: root
+        mode: '0644'
+      notify: reload nginx
+
+    - name: enable new nginx server configuration
+      ansible.builtin.file:
+        src: /etc/nginx/sites-available/server_base.conf
+        dest: /etc/nginx/sites-enabled/server_base.conf
+        state: link
+      notify: reload nginx
+
+    - name: validate nginx configuration
+      ansible.builtin.command: nginx -t
+      changed_when: false
+
+    - name: execute all notified handlers
+      ansible.builtin.meta: flush_handlers
+
+    - name: open nginx ports
+      community.general.ufw:
+        rule: allow
+        direction: in
+        proto: tcp
+        state: enabled
+        to_port: "{{ nginx_listen_port }}"
+
   handlers:
     - name: reload ssh
-      become: true
       ansible.builtin.service:
         name: ssh
+        state: reloaded
+    - name: reload nginx
+      ansible.builtin.service:
+        name: nginx
         state: reloaded

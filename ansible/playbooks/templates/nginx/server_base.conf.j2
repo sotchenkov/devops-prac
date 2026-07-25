@@ -1,0 +1,17 @@
+server {
+    listen        {{ nginx_listen_port }};
+    server_name   {{ nginx_server_name }};
+
+    access_log   /var/log/{{ nginx_server_name }}_access.log combined;
+
+    location / {
+        root  /var/www/example;
+        index index.html;
+    }
+
+    location /health {
+        access_log off;
+        default_type application/json;
+        return 200 '{"status":"ok"}';
+    }
+}
