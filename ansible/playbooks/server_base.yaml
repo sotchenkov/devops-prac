@@ -118,6 +118,25 @@
         state: enabled
         to_port: "{{ nginx_listen_port }}"
 
+    - name: creating new sysctl config
+      ansible.builtin.file:
+        path: /etc/sysctl.d/server-base.conf
+        owner: root
+        group: root
+        mode: '0644'
+        state: touch
+        modification_time: preserve
+        access_time: preserve
+
+    - name: configuring kernel
+      ansible.posix.sysctl:
+        name: "{{ item.key }}"
+        value: "{{ item.value }}"
+        sysctl_file: /etc/sysctl.d/server-base.conf
+        state: present
+        sysctl_set: true
+      loop: "{{ sysctl_parameters | dict2items }}"
+
   handlers:
     - name: reload ssh
       ansible.builtin.service:
