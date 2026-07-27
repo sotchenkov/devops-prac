@@ -1,2 +1,3 @@
 server_base_nginx_listen_port: 80
 server_base_nginx_server_name: example.com
+server_base_nginx_ba_user: homelab

@@ -2,6 +2,9 @@ server {
     listen        {{ server_base_nginx_listen_port }};
     server_name   {{ server_base_nginx_server_name }};
 
+    auth_basic           "Administrator’s Area";
+    auth_basic_user_file .basic_auth;
+    
     access_log   /var/log/{{ server_base_nginx_server_name }}_access.log combined;
 
     location / {
@@ -10,6 +13,7 @@ server {
     }
 
     location /health {
+        auth_basic off;
         access_log off;
         default_type application/json;
         return 200 '{"status":"ok"}';

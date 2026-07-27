@@ -42,6 +42,17 @@
     state: link
   notify: Reload Nginx
 
+- name: Create basic auth credentials file
+  community.general.htpasswd:
+    path: /etc/nginx/.basic_auth
+    name: "{{ server_base_nginx_ba_user }}"
+    password: "{{ vault_nginx_ba_password }}"
+    hash_scheme: md5_crypt
+    owner: root
+    group: www-data
+    mode: '0640'
+  notify: Reload Nginx
+
 - name: Validate Nginx configuration
   ansible.builtin.command: nginx -t
   changed_when: false

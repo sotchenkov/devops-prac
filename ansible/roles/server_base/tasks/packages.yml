@@ -10,3 +10,4 @@
       - chrony
       - ufw
       - nginx-full
+      - python3-passlib
