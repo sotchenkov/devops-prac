@@ -1,7 +1,2 @@
-nginx_listen_port: 80
-nginx_server_name: _
-
-sysctl_parameters:
-  kernel.dmesg_restrict: 1
-  fs.protected_hardlinks: 1
-  fs.protected_symlinks: 1
+server_base_nginx_listen_port: 80
+server_base_nginx_server_name: example.com

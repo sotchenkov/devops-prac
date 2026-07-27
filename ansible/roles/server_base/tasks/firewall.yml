@@ -1,0 +1,27 @@
+- name: Allow SSH through UFW
+  community.general.ufw:
+    rule: allow
+    name: OpenSSH
+
+- name: Configure default UFW policies
+  community.general.ufw:
+    default: "{{ item.policy }}"
+    direction: "{{ item.direction }}"
+  loop:
+    - { policy: 'deny', direction: 'incoming' }
+    - { policy: 'allow', direction: 'outgoing' }
+
+- name: Allow Nginx port through UFW
+  community.general.ufw:
+    rule: allow
+    direction: in
+    proto: tcp
+    to_port: "{{ server_base_nginx_listen_port }}"
+
+- name: Enable UFW logging
+  community.general.ufw:
+    logging: 'on'
+
+- name: Enable UFW
+  community.general.ufw:
+    state: enabled

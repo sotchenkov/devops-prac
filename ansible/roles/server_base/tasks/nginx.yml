@@ -1,0 +1,50 @@
+- name: Start and enable Nginx
+  ansible.builtin.systemd_service:
+    name: nginx
+    state: started
+    enabled: true
+
+- name: Disable default Nginx site
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: Reload Nginx
+
+- name: Create static site directory
+  ansible.builtin.file:
+    path: /var/www/example
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Deploy static site
+  ansible.builtin.copy:
+    src: nginx/index.html
+    dest: /var/www/example/index.html
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Deploy Nginx server configuration
+  ansible.builtin.template:
+    src: nginx/server_base.conf.j2
+    dest: /etc/nginx/sites-available/server_base.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Reload Nginx
+
+- name: Enable Nginx server configuration
+  ansible.builtin.file:
+    src: /etc/nginx/sites-available/server_base.conf
+    dest: /etc/nginx/sites-enabled/server_base.conf
+    state: link
+  notify: Reload Nginx
+
+- name: Validate Nginx configuration
+  ansible.builtin.command: nginx -t
+  changed_when: false
+
+- name: Flush notified handlers
+  ansible.builtin.meta: flush_handlers

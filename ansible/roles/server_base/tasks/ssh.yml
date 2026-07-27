@@ -1,0 +1,10 @@
+- name: Configure SSH Daemon
+  ansible.builtin.copy:
+    src: ssh/sshd_config
+    dest: /etc/ssh/sshd_config
+    owner: root
+    group: root
+    mode: '0644'
+    validate: '/usr/sbin/sshd -t -f %s'
+  notify:
+    - Reload SSH

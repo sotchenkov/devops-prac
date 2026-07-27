@@ -1,0 +1,9 @@
+- name: Set timezone to UTC
+  community.general.timezone:
+    name: Etc/UTC
+
+- name: Enable and activate Chrony service
+  ansible.builtin.systemd_service:
+    name: chrony.service
+    state: started
+    enabled: true

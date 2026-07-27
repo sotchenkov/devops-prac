@@ -1,0 +1,17 @@
+- name: Install base packages
+  ansible.builtin.import_tasks: packages.yml
+
+- name: Configure SSH
+  ansible.builtin.import_tasks: ssh.yml
+
+- name: Configure time synchronization
+  ansible.builtin.import_tasks: time.yml
+
+- name: Configure firewall
+  ansible.builtin.import_tasks: firewall.yml
+
+- name: Configure kernel parameters
+  ansible.builtin.import_tasks: sysctl.yml
+
+- name: Configure Nginx and deploy static site
+  ansible.builtin.import_tasks: nginx.yml
