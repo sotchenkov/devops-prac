@@ -8,6 +8,26 @@ logs
 # Local learning instructions for Codex
 /AGENTS.md
 
+# Local Terraform learning context
+/terraform/LEARNING_PLAN.md
+/terraform/PROGRESS.md
+
+# Terraform local and generated artifacts
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+*.tfplan
+*.tfvars
+*.tfvars.json
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+
 # General
 .DS_Store
 __MACOSX/
