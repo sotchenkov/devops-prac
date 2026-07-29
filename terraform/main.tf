@@ -9,5 +9,19 @@ terraform {
 }
 
 provider "docker" {
-  # Configuration options
+  context = "colima"
+}
+
+resource "docker_image" "nginx" {
+  name = "nginx:1.31"
+}
+
+resource "docker_container" "nginx" {
+  image = docker_image.nginx.image_id
+  name  = "homelab"
+  ports {
+    internal = 80
+    external = 8080
+  }
+  restart = "unless-stopped"
 }
