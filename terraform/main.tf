@@ -66,4 +66,11 @@ resource "docker_container" "proxy" {
     retries      = 3
     start_period = "5s"
   }
+
+  lifecycle {
+    replace_triggered_by = [
+      docker_container.backend
+    ]
+  }
+
 }
