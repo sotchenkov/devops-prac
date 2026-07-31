@@ -4,14 +4,10 @@ project_name = "homelab"
 
 backend_image = "traefik/whoami:v1.11.0"
 
-backends = {
-  "backend-01" = {
-    "external_port" : 8080
-  }
-  "backend-02" = {
-    "external_port" : 8081
-  }
-  "backend-03" = {
-    "external_port" : 8082
-  }
-}
+proxy_image = "nginx:1.31"
+
+backends = [
+  "backend-01",
+  "backend-02",
+  "backend-03",
+]
