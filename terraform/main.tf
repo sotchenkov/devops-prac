@@ -45,9 +45,8 @@ resource "docker_container" "proxy" {
   wait_timeout = 60
 
   upload {
-    file        = "/etc/nginx/conf.d/default.conf"
-    source      = "${path.module}/nginx/default.conf"
-    source_hash = filemd5("${path.module}/nginx/default.conf")
+    file    = "/etc/nginx/conf.d/default.conf"
+    content = templatefile("${path.module}/nginx/default.conf.tftpl", { backends = sort(tolist(var.backends)) })
   }
 
   networks_advanced {
