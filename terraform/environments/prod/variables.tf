@@ -12,11 +12,11 @@ variable "project_name" {
 variable "environment" {
   type        = string
   description = "Deployment environment name"
-  default     = "local"
+  default     = "prod"
 
   validation {
-    condition     = contains(["local", "dev", "prod"], var.environment)
-    error_message = "Environment must be local, dev, or prod."
+    condition     = var.environment == "prod"
+    error_message = "Environment must be prod"
   }
 }
 
@@ -35,12 +35,7 @@ variable "proxy_image" {
 variable "proxy_host_port" {
   type        = number
   description = "Host port for proxy container"
-  default     = 8080
-
-  validation {
-    condition     = var.proxy_host_port >= 1024 && var.proxy_host_port <= 65535
-    error_message = "proxy_host_port must be between 1024 and 65535"
-  }
+  default     = 8081
 }
 
 variable "backends" {
@@ -50,8 +45,7 @@ variable "backends" {
   default = [
     "backend-01",
     "backend-02",
-    "backend-03",
-    "backend-canary"
+    "backend-03"
   ]
 
   validation {

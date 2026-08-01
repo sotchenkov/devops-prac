@@ -18,11 +18,13 @@ data "docker_registry_image" "proxy" {
 
 resource "docker_image" "backend" {
   name          = data.docker_registry_image.backend.name
+  keep_locally  = true
   pull_triggers = [data.docker_registry_image.backend.sha256_digest]
 }
 
 resource "docker_image" "proxy" {
   name          = data.docker_registry_image.proxy.name
+  keep_locally  = true
   pull_triggers = [data.docker_registry_image.proxy.sha256_digest]
 }
 
@@ -34,7 +36,7 @@ resource "docker_container" "backend" {
   for_each = var.backends
 
   image   = docker_image.backend.image_id
-  name    = each.key
+  name    = "${var.environment}-${var.project_name}-${each.key}"
   env     = []
   restart = "unless-stopped"
 
@@ -43,7 +45,7 @@ resource "docker_container" "backend" {
 
 resource "docker_container" "proxy" {
   image   = docker_image.proxy.image_id
-  name    = "proxy"
+  name    = "${var.environment}-${var.project_name}-proxy"
   env     = []
   restart = "unless-stopped"
 
@@ -56,7 +58,7 @@ resource "docker_container" "proxy" {
 
   upload {
     file    = "/etc/nginx/conf.d/default.conf"
-    content = templatefile("${path.module}/nginx/default.conf.tftpl", { backends = sort(tolist(var.backends)) })
+    content = templatefile("${path.module}/nginx/default.conf.tftpl", { backends = sort(tolist(var.backends)), environment = var.environment, project_name = var.project_name })
   }
 
   ports {

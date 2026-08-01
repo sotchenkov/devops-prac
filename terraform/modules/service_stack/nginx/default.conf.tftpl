@@ -1,6 +1,6 @@
 upstream backend {
     %{ for backend in backends ~}
-    server ${backend}:80;
+    server ${environment}-${project_name}-${backend}:80;
     %{ endfor ~}
 }
 

@@ -1,4 +1,4 @@
-environment = "local"
+environment = "prod"
 
 project_name = "homelab"
 
@@ -6,11 +6,10 @@ backend_image = "traefik/whoami:v1.11.0"
 
 proxy_image = "nginx:1.31"
 
-proxy_host_port = 8080
+proxy_host_port = 8081
 
 backends = [
   "backend-01",
   "backend-02",
-  "backend-03",
-  "backend-canary"
+  "backend-03"
 ]

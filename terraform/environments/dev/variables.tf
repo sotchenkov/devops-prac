@@ -12,11 +12,11 @@ variable "project_name" {
 variable "environment" {
   type        = string
   description = "Deployment environment name"
-  default     = "local"
+  default     = "dev"
 
   validation {
-    condition     = contains(["local", "test", "prod"], var.environment)
-    error_message = "Environment must be local, test, or prod."
+    condition     = var.environment == "dev"
+    error_message = "Environment must be dev"
   }
 }
 
@@ -44,8 +44,6 @@ variable "backends" {
 
   default = [
     "backend-01",
-    "backend-02",
-    "backend-03",
     "backend-canary"
   ]
 
