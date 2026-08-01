@@ -6,6 +6,8 @@ backend_image = "traefik/whoami:v1.11.0"
 
 proxy_image = "nginx:1.31"
 
+proxy_host_port = 8080
+
 backends = [
   "backend-01",
   "backend-02",

@@ -1,0 +1,24 @@
+output "proxy_url" {
+  description = "Reverse proxy URL"
+  value       = "http://${docker_container.proxy.ports[0].ip}:${docker_container.proxy.ports[0].external}"
+}
+
+output "backend_container_ids" {
+  description = "Backend container IDs"
+  value       = { for key, container in docker_container.backend : key => container.id }
+}
+
+output "proxy_container_id" {
+  description = "Proxy container ID"
+  value       = docker_container.proxy.id
+}
+
+output "network_name" {
+  description = "Network name"
+  value       = docker_network.backend.name
+}
+
+output "docker_image_digest" {
+  description = "Docker image digest"
+  value       = data.docker_registry_image.backend.sha256_digest
+}

@@ -36,6 +36,11 @@ variable "proxy_host_port" {
   type        = number
   description = "Host port for proxy container"
   default     = 8080
+
+  validation {
+    condition     = var.proxy_host_port >= 1024 && var.proxy_host_port <= 65535
+    error_message = "proxy_host_port must be between 1024 and 65535"
+  }
 }
 
 variable "backends" {
