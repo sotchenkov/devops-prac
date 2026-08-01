@@ -40,6 +40,7 @@ variable "backends" {
     "backend-01",
     "backend-02",
     "backend-03",
+    "backend-canary"
   ]
 
   validation {

@@ -23,23 +23,23 @@ resource "docker_network" "backend" {
 resource "docker_container" "backend" {
   for_each = var.backends
 
-  image = docker_image.backend.image_id
-  name  = each.key
-
+  image   = docker_image.backend.image_id
+  name    = each.key
+  env     = []
   restart = "unless-stopped"
 
-  networks_advanced {
-    name = docker_network.backend.name
-  }
+  network_mode = docker_network.backend.name
 }
 
 resource "docker_container" "proxy" {
-  image = docker_image.proxy.image_id
-  name  = "proxy"
-
+  image   = docker_image.proxy.image_id
+  name    = "proxy"
+  env     = []
   restart = "unless-stopped"
 
   depends_on = [docker_container.backend]
+
+  network_mode = docker_network.backend.name
 
   wait         = true
   wait_timeout = 60
@@ -47,10 +47,6 @@ resource "docker_container" "proxy" {
   upload {
     file    = "/etc/nginx/conf.d/default.conf"
     content = templatefile("${path.module}/nginx/default.conf.tftpl", { backends = sort(tolist(var.backends)) })
-  }
-
-  networks_advanced {
-    name = docker_network.backend.name
   }
 
   ports {
@@ -69,8 +65,12 @@ resource "docker_container" "proxy" {
 
   lifecycle {
     replace_triggered_by = [
-      docker_container.backend
+      docker_container.backend,
     ]
   }
+}
 
+import {
+  id = "318dbfe33c719b1652719f1f0cdaa3cca35404dcd7eab86f9eb23dfdf6131691"
+  to = docker_container.backend["backend-canary"]
 }
