@@ -30,7 +30,8 @@ From this directory:
 ```
 
 Every `up` reconciles the administrator password, the restricted Terraform
-role, and both schemas. Existing state data in the named volume is preserved.
+role, both schemas, and the database objects required by Terraform's `pg`
+backend. Existing state data in the named volume is preserved.
 
 ## Select a Terraform state
 
@@ -43,9 +44,12 @@ source .runtime/dev.env
 source .runtime/prod.env
 ```
 
-These files provide the standard PostgreSQL connection variables and select
-the backend schema through `PG_SCHEMA_NAME`. The corresponding Terraform root
-only needs an empty `backend "pg" {}` configuration.
+These files provide the standard PostgreSQL connection variables, select the
+backend schema through `PG_SCHEMA_NAME`, and tell Terraform to use the tables
+and indexes pre-created by the service. The corresponding Terraform root only
+needs an empty `backend "pg" {}` configuration. Pre-creating the shared
+`public.global_states_id_seq` lets the runtime role stay restricted instead of
+granting it broad `CREATE` access to the `public` schema.
 
 Check `PG_SCHEMA_NAME` before `terraform init`, migration, or any state-changing
 operation. If both files are sourced in one shell, the last one wins.

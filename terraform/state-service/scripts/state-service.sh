@@ -28,7 +28,7 @@ Usage: state-service.sh <command>
 
 Commands:
   validate               Validate .env and the rendered Compose configuration
-  up                     Start PostgreSQL, reconcile roles/schemas, verify access
+  up                     Start PostgreSQL, reconcile backend objects, verify access
   status                 Show container status and verify runtime access
   backup                 Write and verify a timestamped database backup
   down                   Stop the service while preserving its named volume
@@ -141,7 +141,7 @@ verify_runtime_access() {
 
   compose exec --no-TTY "${SERVICE_NAME}" bash -ceu '
     export PGPASSWORD="${TERRAFORM_DB_PASSWORD}"
-    schema_count="$(
+    access_ok="$(
       psql \
         --host=127.0.0.1 \
         --username="${TERRAFORM_DB_USER}" \
@@ -149,9 +149,20 @@ verify_runtime_access() {
         --tuples-only \
         --no-align \
         --set=ON_ERROR_STOP=1 \
-        --command="SELECT count(*) FROM pg_namespace WHERE nspowner = (SELECT oid FROM pg_roles WHERE rolname = current_user)"
+        --command="
+          SELECT (
+            (SELECT count(*) = 2
+             FROM pg_namespace
+             WHERE nspname IN ('\''dev'\'', '\''prod'\'')
+               AND nspowner = (SELECT oid FROM pg_roles WHERE rolname = current_user))
+            AND has_schema_privilege(current_user, '\''public'\'', '\''USAGE'\'')
+            AND has_sequence_privilege(current_user, '\''public.global_states_id_seq'\'', '\''USAGE'\'')
+            AND has_table_privilege(current_user, '\''dev.states'\'', '\''SELECT,INSERT,UPDATE,DELETE'\'')
+            AND has_table_privilege(current_user, '\''prod.states'\'', '\''SELECT,INSERT,UPDATE,DELETE'\'')
+          )
+        "
     )"
-    [[ "${schema_count}" == "2" ]]
+    [[ "${access_ok}" == "t" ]]
   '
 }
 
@@ -169,6 +180,8 @@ write_backend_env() {
     printf 'export PGPASSWORD=%q\n' "${TERRAFORM_DB_PASSWORD}"
     printf 'export PG_SCHEMA_NAME=%q\n' "${schema}"
     printf 'export PG_SKIP_SCHEMA_CREATION=%q\n' 'true'
+    printf 'export PG_SKIP_TABLE_CREATION=%q\n' 'true'
+    printf 'export PG_SKIP_INDEX_CREATION=%q\n' 'true'
     printf 'export PGSSLMODE=%q\n' 'disable'
     printf 'export PGCONNECT_TIMEOUT=%q\n' '5'
   } > "${temporary}"
