@@ -1,0 +1,35 @@
+name: Terraform CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+
+defaults:
+  run:
+    shell: bash
+    working-directory: ./terraform
+
+jobs:
+  test:
+     runs-on: ubuntu-latest
+     permissions:
+       contents: read
+     steps:
+       - name: Checkout repository
+         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+       - name: Setup Terraform
+         uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
+         with:
+           terraform_version: 1.15.8
+
+       - name: Run Terraform init
+         run: make terraform-init
+
+       - name: Run Terraform check
+         run: make terraform-check
