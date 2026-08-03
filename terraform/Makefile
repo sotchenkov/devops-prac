@@ -1,4 +1,4 @@
-.PHONY: terraform-check terraform-init
+.PHONY: terraform-check terraform-init terraform-test
 
 terraform-check:
 	terraform fmt -check -recursive
@@ -14,3 +14,7 @@ terraform-init:
 	    echo "Initialising $$dir..."; \
 		terraform -chdir="$$dir" init -backend=false -input=false; \
 	done
+
+terraform-test:
+	echo "Run tests..."; \
+	terraform -chdir=modules/service_stack test
