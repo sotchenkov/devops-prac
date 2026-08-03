@@ -28,8 +28,16 @@ jobs:
          with:
            terraform_version: 1.15.8
 
+       - name: Setup TFLint
+         uses: terraform-linters/setup-tflint@b480b8fcdaa6f2c577f8e4fa799e89e756bb7c93 # v6.2.2
+         with:
+           tflint_version: v0.64.0
+
        - name: Run Terraform init
          run: make terraform-init
 
        - name: Run Terraform check
          run: make terraform-check
+
+       - name: Run TFLint
+         run: tflint --recursive --format compact
