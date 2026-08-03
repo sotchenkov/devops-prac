@@ -6,7 +6,7 @@ run "dev_resource_names" {
   variables {
     environment  = "dev"
     project_name = "homelab"
-    backends = ["api"]
+    backends     = ["api"]
   }
 
   assert {
