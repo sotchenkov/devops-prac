@@ -12,6 +12,10 @@ logs
 /terraform/LEARNING_PLAN.md
 /terraform/PROGRESS.md
 
+# Local Kubernetes learning context
+/kubernetes/LEARNING_PLAN.md
+/kubernetes/PROGRESS.md
+
 # Terraform local and generated artifacts
 **/.terraform/*
 *.tfstate
