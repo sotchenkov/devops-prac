@@ -14,7 +14,7 @@ spec:
   template:
     metadata:
       annotations:
-        devops-prac.local/config-revision: "2"
+        devops-prac.local/config-revision: "3"
       labels:
         app.kubernetes.io/name: app-backend
     spec:
@@ -23,64 +23,83 @@ spec:
         seccompProfile:
           type: RuntimeDefault
       containers:
-      - name: backend
-        image: app-backend:v1
-        imagePullPolicy: Never
-        env:
-          - name: APP_ENVIRONMENT
-            valueFrom:
-              configMapKeyRef:
-                name: homelab-backend-env
-                key: APP_ENVIRONMENT
-          - name: LOG_LEVEL
-            valueFrom:
-              configMapKeyRef:
-                name: homelab-backend-env
-                key: LOG_LEVEL
-          - name: STARTUP_DELAY
-            valueFrom:
-              configMapKeyRef:
-                name: homelab-backend-env
-                key: STARTUP_DELAY
-          - name: SHUTDOWN_TIMEOUT
-            valueFrom:
-              configMapKeyRef:
-                name: homelab-backend-env
-                key: SHUTDOWN_TIMEOUT
-        securityContext:
-          runAsUser: 65532
-          runAsGroup: 65532
-          privileged: false
-          readOnlyRootFilesystem: true
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-              - ALL
-        ports:
-          - name: http
-            containerPort: 8080
-            protocol: TCP
-        resources:
-          requests:
-            cpu: "100m"
-            memory: "32Mi"
-          limits:
-            cpu: "500m"
-            memory: "128Mi"
-        startupProbe:
-          httpGet:
-            path: "/health/ready"
-            port: http
-          failureThreshold: 10
-          periodSeconds: 3
-        readinessProbe:
-          httpGet:
-            path: "/health/ready"
-            port: http
-          periodSeconds: 10
-        livenessProbe:
-          httpGet:
-            path: "/health/live"
-            port: http
-          periodSeconds: 15
-          failureThreshold: 3
+        - name: backend
+          image: app-backend:v1.1
+          imagePullPolicy: Never
+          env:
+            - name: APP_ENVIRONMENT
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-backend-env
+                  key: APP_ENVIRONMENT
+            - name: LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-backend-env
+                  key: LOG_LEVEL
+            - name: STARTUP_DELAY
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-backend-env
+                  key: STARTUP_DELAY
+            - name: SHUTDOWN_TIMEOUT
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-backend-env
+                  key: SHUTDOWN_TIMEOUT
+            - name: METRICS_AUTH_ENABLED
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-backend-env
+                  key: METRICS_AUTH_ENABLED
+            - name: METRICS_TOKEN_FILE
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-backend-env
+                  key: METRICS_TOKEN_FILE
+          volumeMounts:
+            - name: runtime-secrets
+              mountPath: /run/secrets
+              readOnly: true
+          securityContext:
+            runAsUser: 65532
+            runAsGroup: 65532
+            privileged: false
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "32Mi"
+            limits:
+              cpu: "500m"
+              memory: "128Mi"
+          startupProbe:
+            httpGet:
+              path: "/health/ready"
+              port: http
+            failureThreshold: 10
+            periodSeconds: 3
+          readinessProbe:
+            httpGet:
+              path: "/health/ready"
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: "/health/live"
+              port: http
+            periodSeconds: 15
+            failureThreshold: 3
+      volumes:
+        - name: runtime-secrets
+          secret:
+            secretName: homelab-backend-runtime
+            defaultMode: 0444

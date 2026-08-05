@@ -10,3 +10,5 @@ data:
   LOG_LEVEL: "info"
   STARTUP_DELAY: "1s"
   SHUTDOWN_TIMEOUT: "10s"
+  METRICS_AUTH_ENABLED: "true"
+  METRICS_TOKEN_FILE: "/run/secrets/BEARER_TOKEN"
