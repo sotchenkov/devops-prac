@@ -12,7 +12,7 @@ This application is LLM-generated.
 | `GET /health/live` | `200` JSON | Confirms that the process can serve HTTP requests |
 | `GET /health/ready` | `200` or `503` JSON | Reports the current startup or termination readiness state |
 | `GET /version` | `200` JSON | Returns the version injected when the binary was built |
-| `GET /metrics` | `200` text | Exposes metrics in the Prometheus text format |
+| `GET /metrics` | `200` or `401` text | Exposes metrics in the Prometheus text format, optionally protected by bearer authentication |
 
 Unsupported methods return `405`. Unknown paths return `404`.
 
@@ -34,6 +34,10 @@ When the process receives `SIGINT` or `SIGTERM`, readiness changes to `terminati
 
 Known endpoints have stable path labels. All unknown paths use the single `not_found` label to avoid unbounded metric cardinality. Metrics are held in memory and reset when the process restarts.
 
+Metrics authentication is disabled by default. When enabled, `/metrics` requires an `Authorization: Bearer` credential and returns `401` with a `WWW-Authenticate: Bearer` challenge when the credential is missing or invalid. Authentication does not affect the main, version, or health endpoints.
+
+The bearer token is read once from a file before the HTTP listener opens. Mount the file read-only from the runtime's secret store; do not pass the token through an environment variable or process argument. The file must contain one non-empty token without whitespace and may end with one `LF` or `CRLF` line ending.
+
 ## Configuration
 
 Runtime configuration is supplied through environment variables. [`backend/config/app.env.example`](backend/config/app.env.example) contains local example values.
@@ -45,6 +49,8 @@ Runtime configuration is supplied through environment variables. [`backend/confi
 | `LOG_LEVEL` | `info` | `debug`, `info`, `warn`, or `error` |
 | `STARTUP_DELAY` | `1s` | Non-negative Go duration |
 | `SHUTDOWN_TIMEOUT` | `10s` | Positive Go duration |
+| `METRICS_AUTH_ENABLED` | `false` | `true` or `false` |
+| `METRICS_TOKEN_FILE` | — | Required when metrics authentication is enabled; must be unset otherwise |
 
 Configuration is validated before the HTTP listener is opened.
 
