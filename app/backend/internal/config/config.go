@@ -19,11 +19,13 @@ const (
 )
 
 type Config struct {
-	HTTPAddress     string
-	Environment     string
-	LogLevel        string
-	StartupDelay    time.Duration
-	ShutdownTimeout time.Duration
+	HTTPAddress        string
+	Environment        string
+	LogLevel           string
+	StartupDelay       time.Duration
+	ShutdownTimeout    time.Duration
+	MetricsAuthEnabled bool
+	MetricsTokenFile   string
 }
 
 type LookupEnv func(string) (string, bool)
@@ -34,12 +36,19 @@ func Load() (Config, error) {
 
 func Parse(lookup LookupEnv) (Config, error) {
 	cfg := Config{
-		HTTPAddress:     envOrDefault(lookup, "HTTP_ADDRESS", defaultHTTPAddress),
-		Environment:     envOrDefault(lookup, "APP_ENVIRONMENT", defaultEnvironment),
-		LogLevel:        strings.ToLower(envOrDefault(lookup, "LOG_LEVEL", defaultLogLevel)),
-		StartupDelay:    defaultStartupDelay,
-		ShutdownTimeout: defaultShutdownTimeout,
+		HTTPAddress:      envOrDefault(lookup, "HTTP_ADDRESS", defaultHTTPAddress),
+		Environment:      envOrDefault(lookup, "APP_ENVIRONMENT", defaultEnvironment),
+		LogLevel:         strings.ToLower(envOrDefault(lookup, "LOG_LEVEL", defaultLogLevel)),
+		StartupDelay:     defaultStartupDelay,
+		ShutdownTimeout:  defaultShutdownTimeout,
+		MetricsTokenFile: envOrDefault(lookup, "METRICS_TOKEN_FILE", ""),
 	}
+
+	metricsAuthEnabled, err := boolFromEnv(lookup, "METRICS_AUTH_ENABLED", false)
+	if err != nil {
+		return Config{}, err
+	}
+	cfg.MetricsAuthEnabled = metricsAuthEnabled
 
 	startupDelay, err := durationFromEnv(lookup, "STARTUP_DELAY", defaultStartupDelay)
 	if err != nil {
@@ -76,6 +85,12 @@ func (c Config) Validate() error {
 	}
 	if c.ShutdownTimeout <= 0 {
 		return fmt.Errorf("SHUTDOWN_TIMEOUT must be greater than zero")
+	}
+	if c.MetricsAuthEnabled && c.MetricsTokenFile == "" {
+		return fmt.Errorf("METRICS_TOKEN_FILE must be set when METRICS_AUTH_ENABLED is true")
+	}
+	if !c.MetricsAuthEnabled && c.MetricsTokenFile != "" {
+		return fmt.Errorf("METRICS_TOKEN_FILE must not be set when METRICS_AUTH_ENABLED is false")
 	}
 
 	_, port, err := net.SplitHostPort(c.HTTPAddress)
@@ -121,4 +136,20 @@ func durationFromEnv(lookup LookupEnv, key string, fallback time.Duration) (time
 		return 0, fmt.Errorf("%s must be a valid Go duration: %w", key, err)
 	}
 	return duration, nil
+}
+
+func boolFromEnv(lookup LookupEnv, key string, fallback bool) (bool, error) {
+	value, ok := lookup(key)
+	if !ok {
+		return fallback, nil
+	}
+
+	switch strings.ToLower(strings.TrimSpace(value)) {
+	case "true":
+		return true, nil
+	case "false":
+		return false, nil
+	default:
+		return false, fmt.Errorf("%s must be true or false", key)
+	}
 }

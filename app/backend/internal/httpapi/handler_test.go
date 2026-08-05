@@ -9,6 +9,7 @@ import (
 
 	"github.com/sotchenkov/devops-prac/app/backend/internal/health"
 	"github.com/sotchenkov/devops-prac/app/backend/internal/metrics"
+	"github.com/sotchenkov/devops-prac/app/backend/internal/metricsauth"
 )
 
 func TestOperationalEndpoints(t *testing.T) {
@@ -17,7 +18,7 @@ func TestOperationalEndpoints(t *testing.T) {
 		Environment: "test",
 		Instance:    "instance-1",
 		Version:     "v1.2.3",
-	}, healthState, metrics.New())
+	}, healthState, metrics.New(), nil)
 
 	tests := []struct {
 		name        string
@@ -83,7 +84,7 @@ func TestOperationalEndpoints(t *testing.T) {
 
 func TestReadinessTransitions(t *testing.T) {
 	healthState := health.New()
-	handler := New(Info{Version: "test"}, healthState, metrics.New())
+	handler := New(Info{Version: "test"}, healthState, metrics.New(), nil)
 
 	assertReadyStatus(t, handler, http.StatusServiceUnavailable, "starting")
 	healthState.MarkReady()
@@ -94,7 +95,7 @@ func TestReadinessTransitions(t *testing.T) {
 
 func TestRequestMetricsUseBoundedRouteLabels(t *testing.T) {
 	registry := metrics.New()
-	handler := New(Info{Version: "test"}, health.New(), registry)
+	handler := New(Info{Version: "test"}, health.New(), registry, nil)
 
 	for _, path := range []string{"/", "/does-not-exist"} {
 		response := httptest.NewRecorder()
@@ -119,12 +120,75 @@ func TestRequestMetricsUseBoundedRouteLabels(t *testing.T) {
 }
 
 func TestUnsupportedMethodReturnsMethodNotAllowed(t *testing.T) {
-	handler := New(Info{Version: "test"}, health.New(), metrics.New())
+	handler := New(Info{Version: "test"}, health.New(), metrics.New(), nil)
 	response := httptest.NewRecorder()
 	handler.ServeHTTP(response, httptest.NewRequest(http.MethodPost, "/", nil))
 
 	if response.Code != http.StatusMethodNotAllowed {
 		t.Fatalf("status = %d, want %d", response.Code, http.StatusMethodNotAllowed)
+	}
+}
+
+func TestMetricsBearerAuthentication(t *testing.T) {
+	verifier, err := metricsauth.New("expected-token")
+	if err != nil {
+		t.Fatalf("create verifier: %v", err)
+	}
+	handler := New(Info{Version: "test"}, health.New(), metrics.New(), verifier)
+
+	tests := []struct {
+		name          string
+		authorization string
+		wantStatus    int
+		wantChallenge bool
+		wantMetrics   bool
+	}{
+		{name: "missing token", wantStatus: http.StatusUnauthorized, wantChallenge: true},
+		{name: "wrong scheme", authorization: "Basic expected-token", wantStatus: http.StatusUnauthorized, wantChallenge: true},
+		{name: "wrong token", authorization: "Bearer wrong-token", wantStatus: http.StatusUnauthorized, wantChallenge: true},
+		{name: "correct token", authorization: "Bearer expected-token", wantStatus: http.StatusOK, wantMetrics: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			request := httptest.NewRequest(http.MethodGet, "/metrics", nil)
+			if tt.authorization != "" {
+				request.Header.Set("Authorization", tt.authorization)
+			}
+			response := httptest.NewRecorder()
+			handler.ServeHTTP(response, request)
+
+			if response.Code != tt.wantStatus {
+				t.Fatalf("status = %d, want %d", response.Code, tt.wantStatus)
+			}
+			if got := response.Header().Get("WWW-Authenticate"); (got == "Bearer") != tt.wantChallenge {
+				t.Errorf("WWW-Authenticate = %q, challenge wanted = %t", got, tt.wantChallenge)
+			}
+			containsMetrics := strings.Contains(response.Body.String(), "app_build_info")
+			if containsMetrics != tt.wantMetrics {
+				t.Errorf("metrics body present = %t, want %t", containsMetrics, tt.wantMetrics)
+			}
+		})
+	}
+}
+
+func TestMetricsAuthenticationDoesNotProtectOtherEndpoints(t *testing.T) {
+	verifier, err := metricsauth.New("expected-token")
+	if err != nil {
+		t.Fatalf("create verifier: %v", err)
+	}
+	healthState := health.New()
+	healthState.MarkReady()
+	handler := New(Info{Version: "test"}, healthState, metrics.New(), verifier)
+
+	for _, path := range []string{"/", "/health/live", "/health/ready", "/version"} {
+		t.Run(path, func(t *testing.T) {
+			response := httptest.NewRecorder()
+			handler.ServeHTTP(response, httptest.NewRequest(http.MethodGet, path, nil))
+			if response.Code != http.StatusOK {
+				t.Fatalf("status = %d, want %d", response.Code, http.StatusOK)
+			}
+		})
 	}
 }
 

@@ -6,6 +6,7 @@ import (
 
 	"github.com/sotchenkov/devops-prac/app/backend/internal/health"
 	"github.com/sotchenkov/devops-prac/app/backend/internal/metrics"
+	"github.com/sotchenkov/devops-prac/app/backend/internal/metricsauth"
 )
 
 const prometheusContentType = "text/plain; version=0.0.4; charset=utf-8"
@@ -20,10 +21,11 @@ type API struct {
 	health  *health.State
 	info    Info
 	metrics *metrics.Registry
+	auth    *metricsauth.Verifier
 }
 
-func New(info Info, healthState *health.State, registry *metrics.Registry) http.Handler {
-	api := &API{health: healthState, info: info, metrics: registry}
+func New(info Info, healthState *health.State, registry *metrics.Registry, auth *metricsauth.Verifier) http.Handler {
+	api := &API{health: healthState, info: info, metrics: registry, auth: auth}
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /{$}", api.root)
@@ -60,7 +62,13 @@ func (a *API) version(w http.ResponseWriter, _ *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"version": a.info.Version})
 }
 
-func (a *API) prometheusMetrics(w http.ResponseWriter, _ *http.Request) {
+func (a *API) prometheusMetrics(w http.ResponseWriter, r *http.Request) {
+	if a.auth != nil && !a.auth.Authorize(r.Header.Get("Authorization")) {
+		w.Header().Set("WWW-Authenticate", "Bearer")
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
 	w.Header().Set("Content-Type", prometheusContentType)
 	w.WriteHeader(http.StatusOK)
 	a.metrics.WritePrometheus(w, a.info.Version)

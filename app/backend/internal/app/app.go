@@ -13,6 +13,7 @@ import (
 	"github.com/sotchenkov/devops-prac/app/backend/internal/health"
 	"github.com/sotchenkov/devops-prac/app/backend/internal/httpapi"
 	"github.com/sotchenkov/devops-prac/app/backend/internal/metrics"
+	"github.com/sotchenkov/devops-prac/app/backend/internal/metricsauth"
 )
 
 type BuildInfo struct {
@@ -26,14 +27,14 @@ type Application struct {
 	server *http.Server
 }
 
-func New(cfg config.Config, build BuildInfo, instance string, logger *slog.Logger) *Application {
+func New(cfg config.Config, build BuildInfo, instance string, logger *slog.Logger, metricsAuth *metricsauth.Verifier) *Application {
 	healthState := health.New()
 	registry := metrics.New()
 	handler := httpapi.New(httpapi.Info{
 		Environment: cfg.Environment,
 		Instance:    instance,
 		Version:     build.Version,
-	}, healthState, registry)
+	}, healthState, registry, metricsAuth)
 
 	return &Application{
 		cfg:    cfg,

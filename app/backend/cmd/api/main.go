@@ -11,6 +11,7 @@ import (
 
 	"github.com/sotchenkov/devops-prac/app/backend/internal/app"
 	"github.com/sotchenkov/devops-prac/app/backend/internal/config"
+	"github.com/sotchenkov/devops-prac/app/backend/internal/metricsauth"
 )
 
 var version = "dev"
@@ -22,6 +23,15 @@ func main() {
 	if err != nil {
 		bootstrapLogger.Error("invalid configuration", "error", err)
 		os.Exit(1)
+	}
+
+	var metricsVerifier *metricsauth.Verifier
+	if cfg.MetricsAuthEnabled {
+		metricsVerifier, err = metricsauth.Load(cfg.MetricsTokenFile)
+		if err != nil {
+			bootstrapLogger.Error("could not load metrics authentication credential", "error", err)
+			os.Exit(1)
+		}
 	}
 
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
@@ -43,13 +53,14 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	application := app.New(cfg, app.BuildInfo{Version: version}, instance, logger)
+	application := app.New(cfg, app.BuildInfo{Version: version}, instance, logger, metricsVerifier)
 	logger.Info(
 		"starting HTTP server",
 		"address", listener.Addr().String(),
 		"environment", cfg.Environment,
 		"instance", instance,
 		"version", version,
+		"metrics_auth_enabled", cfg.MetricsAuthEnabled,
 	)
 
 	if err := application.Run(ctx, listener); err != nil && !errors.Is(err, context.Canceled) {

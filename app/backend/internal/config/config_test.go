@@ -28,6 +28,12 @@ func TestParseDefaults(t *testing.T) {
 	if cfg.ShutdownTimeout != 10*time.Second {
 		t.Errorf("ShutdownTimeout = %s, want 10s", cfg.ShutdownTimeout)
 	}
+	if cfg.MetricsAuthEnabled {
+		t.Error("MetricsAuthEnabled = true, want false")
+	}
+	if cfg.MetricsTokenFile != "" {
+		t.Errorf("MetricsTokenFile = %q, want empty", cfg.MetricsTokenFile)
+	}
 	if cfg.SlogLevel() != slog.LevelInfo {
 		t.Errorf("SlogLevel() = %s, want INFO", cfg.SlogLevel())
 	}
@@ -35,11 +41,13 @@ func TestParseDefaults(t *testing.T) {
 
 func TestParseCustomValues(t *testing.T) {
 	cfg, err := Parse(mapLookup(map[string]string{
-		"HTTP_ADDRESS":     "127.0.0.1:9090",
-		"APP_ENVIRONMENT":  "staging",
-		"LOG_LEVEL":        "DEBUG",
-		"STARTUP_DELAY":    "250ms",
-		"SHUTDOWN_TIMEOUT": "15s",
+		"HTTP_ADDRESS":         "127.0.0.1:9090",
+		"APP_ENVIRONMENT":      "staging",
+		"LOG_LEVEL":            "DEBUG",
+		"STARTUP_DELAY":        "250ms",
+		"SHUTDOWN_TIMEOUT":     "15s",
+		"METRICS_AUTH_ENABLED": "true",
+		"METRICS_TOKEN_FILE":   "/run/secrets/metrics-token",
 	}))
 	if err != nil {
 		t.Fatalf("Parse() error = %v", err)
@@ -59,6 +67,12 @@ func TestParseCustomValues(t *testing.T) {
 	}
 	if cfg.ShutdownTimeout != 15*time.Second {
 		t.Errorf("ShutdownTimeout = %s, want 15s", cfg.ShutdownTimeout)
+	}
+	if !cfg.MetricsAuthEnabled {
+		t.Error("MetricsAuthEnabled = false, want true")
+	}
+	if cfg.MetricsTokenFile != "/run/secrets/metrics-token" {
+		t.Errorf("MetricsTokenFile = %q, want /run/secrets/metrics-token", cfg.MetricsTokenFile)
 	}
 }
 
@@ -102,6 +116,21 @@ func TestParseRejectsInvalidConfiguration(t *testing.T) {
 			name:        "invalid port",
 			values:      map[string]string{"HTTP_ADDRESS": ":70000"},
 			wantInError: "HTTP_ADDRESS",
+		},
+		{
+			name:        "invalid metrics auth flag",
+			values:      map[string]string{"METRICS_AUTH_ENABLED": "enabled"},
+			wantInError: "METRICS_AUTH_ENABLED",
+		},
+		{
+			name:        "metrics auth missing token file",
+			values:      map[string]string{"METRICS_AUTH_ENABLED": "true"},
+			wantInError: "METRICS_TOKEN_FILE",
+		},
+		{
+			name:        "unused metrics token file",
+			values:      map[string]string{"METRICS_TOKEN_FILE": "/run/secrets/metrics-token"},
+			wantInError: "METRICS_TOKEN_FILE",
 		},
 	}
 
