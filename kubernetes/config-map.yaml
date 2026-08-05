@@ -7,6 +7,6 @@ metadata:
     app.kubernetes.io/name: app-backend
 data:
   APP_ENVIRONMENT: "local"
-  LOG_LEVEL: "debug"
+  LOG_LEVEL: "info"
   STARTUP_DELAY: "1s"
   SHUTDOWN_TIMEOUT: "10s"

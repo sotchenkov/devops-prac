@@ -14,7 +14,7 @@ spec:
   template:
     metadata:
       annotations:
-        devops-prac.local/config-revision: "1"
+        devops-prac.local/config-revision: "2"
       labels:
         app.kubernetes.io/name: app-backend
     spec:
