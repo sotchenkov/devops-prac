@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homelab-backend-env
+  namespace: homelab
+  labels:
+    app.kubernetes.io/name: app-backend
+data:
+  APP_ENVIRONMENT: "local"
+  LOG_LEVEL: "debug"
+  STARTUP_DELAY: "1s"
+  SHUTDOWN_TIMEOUT: "10s"
