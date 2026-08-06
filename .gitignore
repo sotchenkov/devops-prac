@@ -15,6 +15,7 @@ logs
 # Local Kubernetes learning context
 /kubernetes/LEARNING_PLAN.md
 /kubernetes/PROGRESS.md
+/kubernetes/HELM_KUSTOMIZE_LEARNING_PLAN.md
 /kubernetes/runtime/*
 !/kubernetes/runtime/*.example
 
