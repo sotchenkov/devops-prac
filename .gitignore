@@ -16,8 +16,8 @@ logs
 /kubernetes/LEARNING_PLAN.md
 /kubernetes/PROGRESS.md
 /kubernetes/HELM_KUSTOMIZE_LEARNING_PLAN.md
-/kubernetes/runtime/*
-!/kubernetes/runtime/*.example
+/kubernetes/**/runtime/*
+!/kubernetes/**/runtime/*.example
 
 # Local Argo CD learning context
 /argocd/ARGOCD_LEARNING_PLAN.md
