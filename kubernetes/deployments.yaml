@@ -18,6 +18,8 @@ spec:
       labels:
         app.kubernetes.io/name: app-backend
     spec:
+      serviceAccountName: homelab-backend
+      automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true
         seccompProfile:
