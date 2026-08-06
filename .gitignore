@@ -18,6 +18,9 @@ logs
 /kubernetes/runtime/*
 !/kubernetes/runtime/*.example
 
+# Local Argo CD learning context
+/argocd/ARGOCD_LEARNING_PLAN.md
+
 # Terraform local and generated artifacts
 **/.terraform/*
 *.tfstate
