@@ -22,6 +22,7 @@ spec:
         runAsNonRoot: true
         seccompProfile:
           type: RuntimeDefault
+      terminationGracePeriodSeconds: 20
       containers:
         - name: backend
           image: app-backend:v1.1
@@ -85,19 +86,23 @@ spec:
             httpGet:
               path: "/health/ready"
               port: http
-            failureThreshold: 10
-            periodSeconds: 3
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 5
           readinessProbe:
             httpGet:
               path: "/health/ready"
               port: http
-            periodSeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 2
           livenessProbe:
             httpGet:
               path: "/health/live"
               port: http
-            periodSeconds: 15
+            periodSeconds: 10
             failureThreshold: 3
+            timeoutSeconds: 5
       volumes:
         - name: runtime-secrets
           secret:
