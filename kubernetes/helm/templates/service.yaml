@@ -5,6 +5,7 @@ metadata:
   labels:
     {{- include "homelab-backend.labels" . | nindent 4 }}
 spec:
+  type: {{ .Values.service.type }}
   selector:
     {{- include "homelab-backend.selectorLabels" . | nindent 4 }}
   ports:

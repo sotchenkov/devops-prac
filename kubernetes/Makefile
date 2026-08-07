@@ -1,4 +1,4 @@
-.PHONY: cluster-create cluster-status check-context cluster-delete
+.PHONY: cluster-create cluster-status check-context cluster-delete bootstrap
 
 CLUSTER := homelab-cluster
 CONTEXT := kind-homelab-cluster
@@ -27,3 +27,7 @@ check-context:
 
 cluster-delete:
 	kind delete cluster -n $(CLUSTER)
+
+bootstrap: check-context
+	kubectl apply --context $(CONTEXT) -f namespace.yaml
+	kubectl apply --context $(CONTEXT) -f limits.yaml
