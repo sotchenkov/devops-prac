@@ -1,0 +1,21 @@
+replicaCount: 2
+
+image:
+  repository: app-backend
+  tag: v1.1
+  pullPolicy: Never
+
+config:
+  logLevel: info
+
+service:
+  type: ClusterIP
+  port: 80
+
+resources:
+  requests:
+    cpu: "100m"
+    memory: "32Mi"
+  limits:
+    cpu: "500m"
+    memory: "128Mi"

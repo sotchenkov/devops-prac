@@ -1,4 +1,4 @@
-.PHONY: cluster-create cluster-status check-context cluster-delete apply-namespace
+.PHONY: cluster-create cluster-status check-context cluster-delete
 
 CLUSTER := homelab-cluster
 CONTEXT := kind-homelab-cluster
@@ -27,6 +27,3 @@ check-context:
 
 cluster-delete:
 	kind delete cluster -n $(CLUSTER)
-
-apply-namespace:
-	kubectl apply -f namespace.yaml --context $(CONTEXT)

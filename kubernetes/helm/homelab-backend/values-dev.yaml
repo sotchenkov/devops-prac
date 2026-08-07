@@ -1,0 +1,8 @@
+replicaCount: 1
+
+config:
+  logLevel: debug
+
+resources:
+  limits:
+    cpu: "250m"
