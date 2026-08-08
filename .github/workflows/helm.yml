@@ -1,0 +1,64 @@
+name: Helm CI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "kubernetes/helm/**"
+      - "kubernetes/cluster/kind.yaml"
+      - ".github/workflows/helm.yml"
+
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "kubernetes/helm/**"
+      - "kubernetes/cluster/kind.yaml"
+      - ".github/workflows/helm.yml"
+
+permissions:
+  contents: read
+
+env:
+  HELM_VERSION: v4.2.3
+  KUBERNETES_VERSION: "1.36.1"
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: kubernetes
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Setup Helm
+        uses: azure/setup-helm@dda3372f752e03dde6b3237bc9431cdc2f7a02a2 # v5.0.0
+        with:
+          version: ${{ env.HELM_VERSION }}
+
+      - name: Lint chart
+        run: helm lint helm/ --values helm/values-dev.yaml --strict
+
+      - name: Render chart
+        run: |
+          helm template homelab-backend helm/ \
+            --namespace homelab \
+            --values helm/values-dev.yaml \
+            --kube-version "$KUBERNETES_VERSION" \
+            > "$GITHUB_WORKSPACE/.helm-rendered.yaml"
+
+      - name: Validate manifests
+        uses: docker://ghcr.io/yannh/kubeconform@sha256:85dbef6b4b312b99133decc9c6fc9495e9fc5f92293d4ff3b7e1b30f5611823c # v0.7.0
+        with:
+          entrypoint: /kubeconform
+          args: >-
+            -strict
+            -summary
+            -kubernetes-version ${{ env.KUBERNETES_VERSION }}
+            /github/workspace/.helm-rendered.yaml
