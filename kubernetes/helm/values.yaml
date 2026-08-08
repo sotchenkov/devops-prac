@@ -6,6 +6,7 @@ image:
   pullPolicy: Never
 
 config:
+  environment: local
   logLevel: info
 
 service:

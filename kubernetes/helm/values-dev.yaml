@@ -1,6 +1,7 @@
 replicaCount: 1
 
 config:
+  environment: dev
   logLevel: debug
 
 resources:
