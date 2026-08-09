@@ -2,7 +2,7 @@ replicaCount: 2
 
 config:
   environment: dev
-  logLevel: debug
+  logLevel: info
 
 resources:
   limits:
