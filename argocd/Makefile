@@ -1,4 +1,4 @@
-.PHONY: argo-install
+.PHONY: argo-install argo-ready argo-uninstall
 
 ARGOCD_CHART_VERSION := 10.2.1
 ARGOCD_NAMESPACE := argocd
@@ -14,3 +14,18 @@ argo-install:
 		--version $(ARGOCD_CHART_VERSION) \
 		--wait \
 		--timeout 10m
+
+argo-ready:
+	kubectl --context $(KUBE_CONTEXT) wait \
+        --namespace $(ARGOCD_NAMESPACE) \
+        --for=condition=Ready \
+        pod \
+        --all \
+        --timeout 5m
+
+argo-uninstall:
+	helm uninstall argocd \
+        --kube-context $(KUBE_CONTEXT) \
+        --namespace $(ARGOCD_NAMESPACE) \
+        --wait \
+        --timeout 2m
