@@ -1,0 +1,14 @@
+crds:
+  install: true
+  keep: true
+
+dex:
+  enabled: false
+
+server:
+  service:
+    type: ClusterIP
+  ingress:
+    enabled: false
+  ingressGrpc:
+    enabled: false
