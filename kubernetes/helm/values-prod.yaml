@@ -1,0 +1,9 @@
+replicaCount: 3
+
+config:
+  environment: prod
+  logLevel: warn
+
+resources:
+  limits:
+    cpu: "500m"

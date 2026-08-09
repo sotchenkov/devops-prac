@@ -1,0 +1,9 @@
+replicaCount: 2
+
+config:
+  environment: stage
+  logLevel: warn
+
+resources:
+  limits:
+    cpu: "400m"

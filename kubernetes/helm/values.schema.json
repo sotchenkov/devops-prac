@@ -15,7 +15,7 @@
         },
         "environment": {
           "type": "string",
-          "enum": ["local", "dev", "prod"]
+          "enum": ["local", "dev", "stage", "prod"]
         }
       }
     },

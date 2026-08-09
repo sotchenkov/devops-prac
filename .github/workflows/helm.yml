@@ -26,7 +26,16 @@ env:
 
 jobs:
   validate:
+    name: validate ${{ matrix.environment }}
     runs-on: ubuntu-24.04
+
+    strategy:
+      fail-fast: false
+      matrix:
+        environment:
+          - dev
+          - stage
+          - prod
 
     defaults:
       run:
@@ -43,15 +52,15 @@ jobs:
           version: ${{ env.HELM_VERSION }}
 
       - name: Lint chart
-        run: helm lint helm/ --values helm/values-dev.yaml --strict
+        run: helm lint helm/ --values helm/values-${{ matrix.environment }}.yaml --strict
 
       - name: Render chart
         run: |
           helm template homelab-backend helm/ \
             --namespace homelab \
-            --values helm/values-dev.yaml \
+            --values helm/values-${{ matrix.environment }}.yaml \
             --kube-version "$KUBERNETES_VERSION" \
-            > "$GITHUB_WORKSPACE/.helm-rendered.yaml"
+            > "$GITHUB_WORKSPACE/.helm-rendered-${{ matrix.environment }}.yaml"
 
       - name: Validate manifests
         uses: docker://ghcr.io/yannh/kubeconform@sha256:85dbef6b4b312b99133decc9c6fc9495e9fc5f92293d4ff3b7e1b30f5611823c # v0.7.0
@@ -61,4 +70,4 @@ jobs:
             -strict
             -summary
             -kubernetes-version ${{ env.KUBERNETES_VERSION }}
-            /github/workspace/.helm-rendered.yaml
+            /github/workspace/.helm-rendered-${{ matrix.environment }}.yaml
