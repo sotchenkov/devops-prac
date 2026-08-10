@@ -71,3 +71,13 @@ jobs:
             -summary
             -kubernetes-version ${{ env.KUBERNETES_VERSION }}
             /github/workspace/.helm-rendered-${{ matrix.environment }}.yaml
+
+      - name: Scan manifests for misconfigurations
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          version: v0.73.0
+          scan-type: config
+          scan-ref: .helm-rendered-${{ matrix.environment }}.yaml
+          format: table
+          severity: HIGH,CRITICAL
+          exit-code: "1"
