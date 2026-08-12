@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: homelab-backend
+  name: homelab-backend-stage
   namespace: argocd
 spec:
   project: default
@@ -11,16 +11,10 @@ spec:
     targetRevision: main
     path: kubernetes/helm
     helm:
-      releaseName: homelab-backend
+      releaseName: homelab-backend-stage
       valueFiles:
-        - values-dev.yaml
+        - values-stage.yaml
 
   destination:
     server: https://kubernetes.default.svc
-    namespace: homelab
-
-  syncPolicy:
-    automated:
-      enabled: true
-      prune: true
-      selfHeal: true
+    namespace: homelab-stage
