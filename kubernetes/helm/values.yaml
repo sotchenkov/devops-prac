@@ -3,6 +3,7 @@ replicaCount: 2
 image:
   repository: app-backend
   tag: v1.1
+  digest: ""
   pullPolicy: Never
 
 config:

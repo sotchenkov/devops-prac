@@ -1,3 +1,8 @@
+{{- $imageReference := printf "%s:%s" .Values.image.repository .Values.image.tag }}
+{{- if .Values.image.digest }}
+{{- $imageReference = printf "%s@%s" .Values.image.repository .Values.image.digest }}
+{{- end }}
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -26,7 +31,7 @@ spec:
       terminationGracePeriodSeconds: 20
       containers:
         - name: backend
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          image: {{ $imageReference | quote }}
           imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
           env:
             - name: APP_ENVIRONMENT
