@@ -2,7 +2,7 @@ apiVersion: v1
 kind: LimitRange
 metadata:
   name: homelab-container-limits
-  namespace: homelab
+  namespace: homelab-prod
 spec:
   limits:
     - type: Container
@@ -18,7 +18,7 @@ apiVersion: v1
 kind: ResourceQuota
 metadata:
   name: homelab-resources-quota
-  namespace: homelab
+  namespace: homelab-prod
 spec:
   hard:
     requests.cpu: "1"

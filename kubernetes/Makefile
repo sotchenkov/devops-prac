@@ -1,8 +1,11 @@
-.PHONY: cluster-create cluster-status check-context cluster-delete bootstrap
+.PHONY: cluster-create cluster-status check-context check-environment cluster-delete bootstrap
 
 CLUSTER := homelab-cluster
 CONTEXT := kind-homelab-cluster
-	
+ENV ?= dev
+ENVIRONMENTS := dev stage prod
+ENVIRONMENT_DIR := environments/$(ENV)
+
 cluster-create:
 	kind create cluster --config ./cluster/kind.yaml
 
@@ -25,9 +28,19 @@ check-context:
 			print "OK: " actual; \
 		}'
 
+check-environment:
+	@case " $(ENVIRONMENTS) " in \
+		*" $(ENV) "*) ;; \
+		*) \
+			echo "Error: unsupported ENV: $(ENV)"; \
+			echo "Expected one of: $(ENVIRONMENTS)"; \
+			exit 2; \
+		;; \
+	esac
+
 cluster-delete:
 	kind delete cluster -n $(CLUSTER)
 
-bootstrap: check-context
-	kubectl apply --context $(CONTEXT) -f namespace.yaml
-	kubectl apply --context $(CONTEXT) -f limits.yaml
+bootstrap: check-context check-environment
+	kubectl apply --context $(CONTEXT) -f $(ENVIRONMENT_DIR)/namespace.yaml
+	kubectl apply --context $(CONTEXT) -f $(ENVIRONMENT_DIR)/limits.yaml

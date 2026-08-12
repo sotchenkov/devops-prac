@@ -11,7 +11,7 @@ spec:
     targetRevision: main
     path: kubernetes/helm
     helm:
-      releaseName: homelab-backend-stage
+      releaseName: homelab-backend
       valueFiles:
         - values-stage.yaml
 
