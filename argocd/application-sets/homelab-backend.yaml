@@ -1,0 +1,56 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: homelab-backend
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions:
+    - missingkey=error
+
+  generators:
+    - list:
+        elements:
+          - environment: dev
+            namespace: homelab-dev
+            valuesFile: values-dev.yaml
+            autoSync: true
+
+          - environment: stage
+            namespace: homelab-stage
+            valuesFile: values-stage.yaml
+            autoSync: false
+
+          - environment: prod
+            namespace: homelab-prod
+            valuesFile: values-prod.yaml
+            autoSync: false
+
+  template:
+    metadata:
+      name: 'homelab-backend-{{ .environment }}'
+    spec:
+      project: homelab
+
+      source:
+        repoURL: https://github.com/sotchenkov/devops-prac.git
+        targetRevision: main
+        path: kubernetes/helm
+        helm:
+          releaseName: homelab-backend
+          valueFiles:
+            - '{{ .valuesFile }}'
+
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{ .namespace }}'
+
+  templatePatch: |
+    {{- if .autoSync }}
+    spec:
+      syncPolicy:
+        automated:
+          enabled: true
+          prune: true
+          selfHeal: true
+    {{- end }}
