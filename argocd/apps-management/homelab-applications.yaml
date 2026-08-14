@@ -11,7 +11,7 @@ spec:
   source:
     repoURL: https://github.com/sotchenkov/devops-prac.git
     targetRevision: main
-    path: argocd/applications
+    path: argocd/application-sets
 
   destination:
     server: https://kubernetes.default.svc
