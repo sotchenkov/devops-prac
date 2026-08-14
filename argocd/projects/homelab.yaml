@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: homelab
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  description: Homelab backend applications
+
+  sourceRepos:
+    - https://github.com/sotchenkov/devops-prac.git
+
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: homelab-dev
+    - server: https://kubernetes.default.svc
+      namespace: homelab-stage
+    - server: https://kubernetes.default.svc
+      namespace: homelab-prod
+
+  namespaceResourceWhitelist:
+    - group: ""
+      kind: ConfigMap
+    - group: ""
+      kind: Service
+    - group: ""
+      kind: ServiceAccount
+    - group: apps
+      kind: Deployment
