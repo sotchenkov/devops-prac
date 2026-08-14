@@ -3,6 +3,8 @@ kind: Application
 metadata:
   name: homelab-applications
   namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
 spec:
   project: application-management
 
@@ -14,3 +16,9 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd
+
+  syncPolicy:
+    automated:
+      enabled: true
+      prune: true
+      selfHeal: true
