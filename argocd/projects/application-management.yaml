@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: application-management
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  description: Manages homelab Application resources
+
+  sourceRepos:
+    - https://github.com/sotchenkov/devops-prac.git
+
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: argocd
+
+  clusterResourceWhitelist: []
+
+  namespaceResourceWhitelist:
+    - group: argoproj.io
+      kind: Application
