@@ -2,8 +2,8 @@ replicaCount: 3
 
 image:
   repository: ghcr.io/sotchenkov/app-backend
-  tag: 5edb397fa066a0695b61e635b8d7be930112efd5
-  digest: sha256:bb12fc4a58ed37a6ebd4d51317c8c5bb5798fa413ab2270d0553d68ff414f406
+  tag: "5c06d8ee250535169804a8839aebeaf502bfb817"
+  digest: "sha256:18727c716f9dc38ec60810c6afabc4acd8c5df23f5c0f6916dc8f95e73f7759a"
   pullPolicy: IfNotPresent
   
 config:
