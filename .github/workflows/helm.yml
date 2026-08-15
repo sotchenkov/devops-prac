@@ -17,6 +17,8 @@ on:
       - "kubernetes/cluster/kind.yaml"
       - ".github/workflows/helm.yml"
 
+  workflow_dispatch:
+
 permissions:
   contents: read
 
@@ -81,3 +83,16 @@ jobs:
           format: table
           severity: HIGH,CRITICAL
           exit-code: "1"
+
+  merge-dev-update:
+    needs: validate
+    if: github.event_name == 'workflow_dispatch' && github.ref_name == 'automation/update-dev'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Merge dev update
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh pr merge automation/update-dev --repo "$GITHUB_REPOSITORY" --squash --delete-branch --match-head-commit "$GITHUB_SHA"

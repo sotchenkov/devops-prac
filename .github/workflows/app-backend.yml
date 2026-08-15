@@ -108,7 +108,7 @@ jobs:
           severity: HIGH,CRITICAL
           exit-code: "1"
           cache: true
-          
+
   publish:
     name: Publish image
     runs-on: ubuntu-24.04
@@ -121,6 +121,9 @@ jobs:
     permissions:
       contents: read
       packages: write
+
+    outputs:
+      image_digest: ${{ steps.published_image.outputs.digest }}
 
     steps:
       - name: Download OCI archive
@@ -147,3 +150,48 @@ jobs:
             --from-oci-layout \
             "$RUNNER_TEMP/app-backend-oci:$GITHUB_SHA" \
             "$REGISTRY/$IMAGE_NAME:$GITHUB_SHA"
+
+      - name: Resolve published image digest
+        id: published_image
+        run: |
+          digest="$(oras resolve "$REGISTRY/$IMAGE_NAME:$GITHUB_SHA")"
+          echo "digest=$digest" >> "$GITHUB_OUTPUT"
+
+  update-dev-chart:
+    name: Update dev configuration
+    runs-on: ubuntu-24.04
+    needs: publish
+    env:
+      IMAGE_DIGEST: ${{ needs.publish.outputs.image_digest }}
+
+    permissions:
+      contents: write
+      actions: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Update dev image
+        run: |
+          sed -i "s|^  tag:.*|  tag: \"$GITHUB_SHA\"|" kubernetes/helm/values-dev.yaml
+          sed -i "s|^  digest:.*|  digest: \"$IMAGE_DIGEST\"|" kubernetes/helm/values-dev.yaml
+
+      - name: Create dev update pull request
+        id: dev_pr
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          branch: automation/update-dev
+          base: main
+          add-paths: kubernetes/helm/values-dev.yaml
+          commit-message: "change: update dev image"
+          title: "change: update dev image"
+
+      - name: Run Helm CI
+        if: steps.dev_pr.outputs.pull-request-operation == 'created' || steps.dev_pr.outputs.pull-request-operation == 'updated'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run helm.yml --ref automation/update-dev
