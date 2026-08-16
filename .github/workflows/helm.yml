@@ -1,17 +1,9 @@
 name: Helm CI
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - "kubernetes/helm/**"
-      - "kubernetes/cluster/kind.yaml"
-      - ".github/workflows/helm.yml"
-
   pull_request:
     branches:
-      - main
+      - develop
     paths:
       - "kubernetes/helm/**"
       - "kubernetes/cluster/kind.yaml"
@@ -84,15 +76,15 @@ jobs:
           severity: HIGH,CRITICAL
           exit-code: "1"
 
-  merge-dev-update:
+  merge-image-update:
     needs: validate
-    if: github.event_name == 'workflow_dispatch' && github.ref_name == 'automation/update-dev'
+    if: github.event_name == 'workflow_dispatch' && github.ref_name == 'automation/update-image'
     runs-on: ubuntu-24.04
     permissions:
       contents: write
       pull-requests: write
     steps:
-      - name: Merge dev update
+      - name: Merge image update
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh pr merge automation/update-dev --repo "$GITHUB_REPOSITORY" --squash --delete-branch --match-head-commit "$GITHUB_SHA"
+        run: gh pr merge automation/update-image --repo "$GITHUB_REPOSITORY" --squash --delete-branch --match-head-commit "$GITHUB_SHA"
