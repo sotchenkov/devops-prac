@@ -1,10 +1,10 @@
 replicaCount: 2
 
 image:
-  repository: app-backend
-  tag: v1.1
-  digest: ""
-  pullPolicy: Never
+  repository: ghcr.io/sotchenkov/app-backend
+  tag: "67c4ed58e5c673c88c484a2471fbe8719c8442f5"
+  digest: "sha256:99640a9c2a6ec5e65e46801c522730d392ca80e906c74d2aeeee6aaf4e69157a"
+  pullPolicy: IfNotPresent
 
 config:
   environment: local

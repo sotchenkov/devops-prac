@@ -14,16 +14,19 @@ spec:
           - environment: dev
             namespace: homelab-dev
             valuesFile: values-dev.yaml
+            targetRevision: develop
             autoSync: true
 
           - environment: stage
             namespace: homelab-stage
             valuesFile: values-stage.yaml
+            targetRevision: develop
             autoSync: false
 
           - environment: prod
             namespace: homelab-prod
             valuesFile: values-prod.yaml
+            targetRevision: main
             autoSync: false
 
   template:
@@ -34,7 +37,7 @@ spec:
 
       source:
         repoURL: https://github.com/sotchenkov/devops-prac.git
-        targetRevision: main
+        targetRevision: '{{ .targetRevision }}'
         path: kubernetes/helm
         helm:
           releaseName: homelab-backend
