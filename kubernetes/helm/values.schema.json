@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft-07/schema#",
   "type": "object",
   "additionalProperties": false,
-  "required": ["replicaCount", "image", "config", "service", "resources"],
+  "required": ["replicaCount", "image", "config", "service", "resources", "hooks"],
   "properties": {
     "config": {
       "type": "object",
@@ -96,6 +96,17 @@
               "minLength": 1
             }
           }
+        }
+      }
+    },
+    "hooks": {
+      "type": "object",
+      "required": ["image"],
+      "additionalProperties": false,
+      "properties": {
+        "image": {
+          "type": "string",
+          "pattern": "^.+@sha256:[a-f0-9]{64}$"
         }
       }
     }

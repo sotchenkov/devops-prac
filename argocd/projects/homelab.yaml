@@ -28,3 +28,5 @@ spec:
       kind: ServiceAccount
     - group: apps
       kind: Deployment
+    - group: batch
+      kind: Job
