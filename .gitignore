@@ -22,6 +22,9 @@ logs
 # Local Argo CD learning context
 /argocd/ARGOCD_LEARNING_PLAN.md
 
+# Local Keycloak learning context
+/keycloak/KEYCLOAK_LEARNING_PLAN.md
+
 # Terraform local and generated artifacts
 **/.terraform/*
 *.tfstate

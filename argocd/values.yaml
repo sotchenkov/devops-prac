@@ -12,3 +12,16 @@ server:
     enabled: false
   ingressGrpc:
     enabled: false
+
+configs:
+  cm:
+    accounts.p_petrov: login
+
+  rbac:
+    policy.default: role:authenticated
+    policy.csv: |
+      p, role:developer, projects, get, homelab, allow
+      p, role:developer, applications, get, homelab/*, allow
+      p, role:developer, applications, sync, homelab/homelab-backend-dev, allow
+      p, role:developer, logs, get, homelab/homelab-backend-dev, allow
+      g, p_petrov, role:developer
