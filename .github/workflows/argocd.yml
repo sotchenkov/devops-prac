@@ -1,0 +1,58 @@
+name: argocd CI
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - main
+    paths:
+      - "argocd/**"
+      - ".github/workflows/argocd.yml"
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  HELM_VERSION: v4.2.3
+  ARGOCD_CHART_VERSION: 10.4.0
+  KUBERNETES_VERSION: "1.36.1"
+
+jobs:
+  validate:
+    name: validate argocd configuration
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Helm
+        uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
+        with:
+          version: ${{ env.HELM_VERSION }}
+
+      - name: Validate argocd Helm values
+        run: |
+          helm template argocd argo-cd \
+            --repo https://argoproj.github.io/argo-helm \
+            --version "$ARGOCD_CHART_VERSION" \
+            --namespace argocd \
+            --values argocd/values.yaml \
+            --kube-version "$KUBERNETES_VERSION" \
+            > /dev/null
+
+      - name: Validate argocd custom resources
+        uses: docker://ghcr.io/yannh/kubeconform@sha256:faffaf43f95aa6425306e1ab8d6fcad72acb9049158f38e574c085ea1ec0f64e # v0.8.0
+        with:
+          entrypoint: /kubeconform
+          args: >-
+            -strict
+            -summary
+            -kubernetes-version ${{ env.KUBERNETES_VERSION }}
+            -schema-location default
+            -schema-location https://raw.githubusercontent.com/datreeio/CRDs-catalog/52b0261318acc7dd0b66e032759b1f218216b980/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json
+            /github/workspace/argocd/application-sets
+            /github/workspace/argocd/apps-management
+            /github/workspace/argocd/projects
