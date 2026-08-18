@@ -1,6 +1,6 @@
 .PHONY: argo-install argo-ready argo-uninstall
 
-ARGOCD_CHART_VERSION := 10.2.1
+ARGOCD_CHART_VERSION := 10.4.0
 ARGOCD_NAMESPACE := argocd
 KUBE_CONTEXT := kind-homelab-cluster
 ARGOCD_VALUES := values.yaml
@@ -13,6 +13,7 @@ argo-install:
 		--namespace $(ARGOCD_NAMESPACE) \
 		--values $(ARGOCD_VALUES) \
 		--create-namespace \
+		--rollback-on-failure \
 		--version $(ARGOCD_CHART_VERSION) \
 		--wait \
 		--timeout 10m
