@@ -8,22 +8,13 @@ logs
 # Local learning instructions for Codex
 /AGENTS.md
 
-# Local Terraform learning context
-/terraform/LEARNING_PLAN.md
-/terraform/PROGRESS.md
+# Local learning plans
+*LEARNING_PLAN.md
+*PROGRESS.md
 
-# Local Kubernetes learning context
-/kubernetes/LEARNING_PLAN.md
-/kubernetes/PROGRESS.md
-/kubernetes/HELM_KUSTOMIZE_LEARNING_PLAN.md
+# Local Kubernetes runtime data
 /kubernetes/**/runtime/*
 !/kubernetes/**/runtime/*.example
-
-# Local Argo CD learning context
-/argocd/ARGOCD_LEARNING_PLAN.md
-
-# Local Keycloak learning context
-/keycloak/KEYCLOAK_LEARNING_PLAN.md
 
 # Terraform local and generated artifacts
 **/.terraform/*
